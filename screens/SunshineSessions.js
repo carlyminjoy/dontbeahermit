@@ -8,12 +8,12 @@ import SetupHeading from './../components/setupheading';
 import { Constants, Location, Permissions } from 'expo';
 import Dashboard from './Dashboard.js';
 
-export default class SunshineSessionsSetup extends React.Component {
+export default class SunshineSessions extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
 			address: '',
-			goalAmount: 7
+			goalAmount: 0
 		}
 
 		// Bind functions
@@ -21,9 +21,9 @@ export default class SunshineSessionsSetup extends React.Component {
 		this.increment = this.increment.bind(this);
 		this.goToDashboard = this.goToDashboard.bind(this);
 	}
-
 	componentDidMount() {
 		this.getAddress();
+		this.getGoalAmount();
 	}
 
 	async getAddress() {
@@ -31,18 +31,23 @@ export default class SunshineSessionsSetup extends React.Component {
 		this.setState({address: address});
 	}
 
+	async getGoalAmount() {
+		let goalAmount = await AsyncStorage.getItem('@store:goalAmount');
+		this.setState({goalAmount: goalAmount});
+	}
+
 	decrement() {
 		this.setState({goalAmount: this.state.goalAmount - 1});
 	}
 
 	increment() {
-		this.setState({goalAmount: this.state.goalAmount + 1});
+		this.setState({goalAmount: parseInt(this.state.goalAmount) + 1});
 	}
 
 	async goToDashboard() {
 		// Navigate to next screen
 		await AsyncStorage.setItem('@store:goalAmount', this.state.goalAmount.toString());
-		this.props.navigation.navigate('Dashboard');
+		this.props.navigation.navigate('Dashboard', {refresh: true});
 	}
 
 	render() {
@@ -51,33 +56,31 @@ export default class SunshineSessionsSetup extends React.Component {
 				<SetupHeading 
 					title="SUNSHINE SESSIONS"
 					style={styles.heading} />
-
-				<Text style={styles.paragraph}>
-					Yay! Your hermit hole is: </Text>
-
-				<Text style={styles.bold}>
-					{this.state.address} </Text>
-
+				
 				<Icon 
 					name = "sun" 
-					size={100}
-					style={styles.icon}/>
+					size={150}
+					style={styles.icon} />
 
 				<Text style={styles.paragraph}>
-					How many times per week do you want to get some sunshine?</Text>
+					Weekly Goal:</Text>
 
 				<View style={styles.counterContainer}>
+
 					<WalkthroughButton 
 						text=" - "
 						onPress={this.decrement}
 						style={styles.decrement} />
+
 					<Text style={styles.counter}>
 							{this.state.goalAmount}
 						</Text>
+
 					<WalkthroughButton 
 						text=" + "
 						onPress={this.increment}
 						style={styles.increment} />
+
 				</View>
 
 				<View style={styles.buttonContainer}>
@@ -85,6 +88,11 @@ export default class SunshineSessionsSetup extends React.Component {
 						text="SET GOAL"
 						style={styles.startButton}
 						onPress={this.goToDashboard} />
+
+					<WalkthroughButton 
+						text="CANCEL"
+						style={styles.cancelButton}
+						onPress={() => this.props.navigation.navigate('Dashboard')} />
 				</View>
 
 			</View>
@@ -131,7 +139,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		marginLeft: 10,
 		marginRight: 10,
-		borderRadius:5
+		borderRadius: 5
 	},
 	increment: {
 		backgroundColor: '#333',
@@ -142,7 +150,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		marginLeft: 10,
 		marginRight: 10,
-		borderRadius:5
+		borderRadius: 5
 	},
 	img: {
 		height: 50,
@@ -155,11 +163,10 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		width: '100%',
 		height: 100,
-		marginBottom:15
 	},
 	buttonContainer: {
-		height: 100,
-		paddingBottom: 40,
+		height: 'auto',
+		paddingBottom: 30,
 		display: 'flex',
 		justifyContent: 'center',
 		alignItems: 'center'
@@ -174,13 +181,21 @@ const styles = StyleSheet.create({
 		width: 290,
 		borderRadius: 10
 	},
+	cancelButton: {
+		marginTop: 10,
+		alignItems: 'center',
+		backgroundColor: '#333',
+		paddingTop: 10,
+		paddingBottom: 10,
+		paddingLeft: 5,
+		paddingRight: 5,
+		width: 290,
+		borderRadius: 10
+	},
 	paragraph: {
-		fontSize: 18,
-		lineHeight: 20,
-		marginTop: 5,
-		marginBottom: 5,
-		marginLeft: 15,
-		marginRight: 15,
+		fontSize: 24,
+		lineHeight: 26,
+		fontWeight: '700',
 		textAlign: 'center'
 	},
 	bold: {

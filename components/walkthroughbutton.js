@@ -6,6 +6,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/Feather';
 
 export default class walkthroughButton extends Component {
   constructor(props) {

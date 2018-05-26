@@ -30,6 +30,7 @@ const styles = StyleSheet.create({
     color: '#FCFCFC',
     fontSize: 24,
     fontFamily: 'Avenir',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    letterSpacing:1
   }
 });

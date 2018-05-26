@@ -1,24 +1,29 @@
 import React from 'react';
 import StackNavigator from 'react-navigation';
 import Icon from 'react-native-vector-icons/Feather';
-import { AppRegistry, AsyncStorage, StyleSheet, TouchableOpacity, Text, View, Image, Button } from 'react-native';
+import { AppRegistry, Alert, AsyncStorage, Modal, StyleSheet, TouchableOpacity, Text, View, Image, Button } from 'react-native';
 import hermitImg from './../assets/hermitGreenBgWhite.png';
 import WalkthroughButton from './../components/walkthroughbutton';
 import SetupHeading from './../components/setupheading';
 import { Constants, Location, Permissions } from 'expo';
-import SunshineSessionsSetup from './SunshineSessionsSetup.js';
+import Dashboard from './Dashboard.js';
 
-export default class HermitHolesSetup extends React.Component {
+export default class HermitHoles extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {}
+		this.state = {
+			hermitHole : ''
+		}
 
 		// Bind functions
 		this.setHermitHole = this.setHermitHole.bind(this)
+		this.getHermitHole = this.getHermitHole.bind(this)
 	}
-
+	componentDidMount() {
+		// Call funcs
+		this.getHermitHole();
+	}
 	async setHermitHole() {
-		// Ask user permissions for location services
 		let { status } = await Permissions.askAsync(Permissions.LOCATION);
 		if (status == 'granted') {
 			// Get coords & store
@@ -33,11 +38,21 @@ export default class HermitHolesSetup extends React.Component {
 			let converted = convertedObj[0].name + ', ' + convertedObj[0].city + ', ' + convertedObj[0].region;
 			await AsyncStorage.setItem('@store:hermitHole', converted);
 
-			// Navigate to next screen
-			this.props.navigation.navigate('SunshineSessionsSetup')
+			// Alert user that hermit hole has changed
+			Alert.alert(
+			  "You've found a new home!",
+			  "\nHermit hole has been updated to: \n\n" + converted,
+			  [
+			    {text: 'OK', onPress: () => this.props.navigation.navigate('Dashboard')},
+			  ],
+			  { cancelable: false }
+			)
 		}
 	}
-
+	async getHermitHole() {
+		let hermitHole = await AsyncStorage.getItem('@store:hermitHole');
+		this.setState({hermitHole: hermitHole});
+	}
 	render() {
 		return (
 			<View style={styles.container}>
@@ -52,17 +67,23 @@ export default class HermitHolesSetup extends React.Component {
 					style={styles.icon} />
 
 				<Text style={styles.paragraph}>
-					Every hermit has a hole or two! </Text>
+					Your current Hermit Hole is: </Text>
+
+				<Text style={styles.bold}>
+					{this.state.hermitHole} </Text>
 
 				<Text style={styles.paragraph}>
-					If you're at home right now, click the button below to set this as your hermit hole. </Text>
+					Click the button below to update. </Text>
 
-				<View style={styles.buttonContainer}>
-					<WalkthroughButton 
-						text="SET HERMIT HOLE"
-						style={styles.startButton}
-						onPress={this.setHermitHole} />
-				</View>
+				<WalkthroughButton 
+					text="SET HERMIT HOLE"
+					style={styles.startButton}
+					onPress={this.setHermitHole} />
+
+				<WalkthroughButton 
+					text="CANCEL"
+					style={styles.cancelButton}
+					onPress={() => this.props.navigation.navigate('Dashboard')} />
 
 			</View>
 		);
@@ -72,15 +93,13 @@ export default class HermitHolesSetup extends React.Component {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		justifyContent: 'space-between',
 		backgroundColor: '#FCFCFC',
 		alignItems: 'center',
-		maxHeight: '100%'
 	},
 	icon: {
 		color: "#333",
 		marginTop: 10,
-		marginBottom: 15
+		marginBottom: 5
 	},
 	heading: {
 		backgroundColor: '#333',
@@ -89,16 +108,21 @@ const styles = StyleSheet.create({
 		width: '100%',
 		height: 100,
 	},
-	buttonContainer: {
-		height: 100,
-		paddingBottom: 40,
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
 	startButton: {
+		marginTop: 15,
 		alignItems: 'center',
 		backgroundColor: '#EF476F',
+		paddingTop: 10,
+		paddingBottom: 10,
+		paddingLeft: 5,
+		paddingRight: 5,
+		width: 290,
+		borderRadius: 10
+	},
+	cancelButton: {
+		marginTop: 10,
+		alignItems: 'center',
+		backgroundColor: '#333',
 		paddingTop: 10,
 		paddingBottom: 10,
 		paddingLeft: 5,
@@ -109,11 +133,21 @@ const styles = StyleSheet.create({
 	paragraph: {
 		fontSize: 18,
 		lineHeight: 20,
-		marginTop: 5,
+		marginTop: 10,
 		marginBottom: 5,
 		marginLeft: 15,
 		marginRight: 15,
 		textAlign: 'center'
+	},
+	bold: {
+		fontSize: 24,
+		lineHeight: 26,
+		marginTop: 5,
+		marginBottom: 5,
+		marginLeft: 15,
+		marginRight: 15,
+		textAlign: 'center',
+		fontWeight: '700'
 	}
 });
 

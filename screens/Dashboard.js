@@ -1,98 +1,152 @@
+// Import modules
 import React from 'react';
 import StackNavigator from 'react-navigation';
-import { Icon } from 'react-native-vector-icons';
+import Icon from 'react-native-vector-icons/Feather';
 import { AppRegistry, AsyncStorage, StyleSheet, TouchableOpacity, Text, View, Image, Button } from 'react-native';
-import hermitLogo from './../assets/hermitSadPinkBgBlue.png';
-import WalkthroughButton from './../components/walkthroughbutton';
 import { Constants, Location, Permissions } from 'expo';
+
+// Import custom modules
+import hermitLogo from './../assets/hermitSadPinkBgBlue.png';
+import HappyCrab from './../components/happycrab.js';
+import MediocreCrab from './../components/mediocrecrab.js';
+import SadCrab from './../components/sadcrab.js';
+import WalkthroughButton from './../components/walkthroughbutton';
+import HermitHoles from './HermitHoles.js';
+import SunshineSessionsSetup from './SunshineSessionsSetup.js';
+import SunshineSessions from './SunshineSessions.js';
 
 export default class HomeScreen extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       hermitHole: '',
+      lat: '',
+      lon: '',
       sunshineSessions: 0,
       goalAmount: 0,
       goalPercentage : 0
     }
 
     // Bind functions
-    this.getAddress = this.getAddress.bind(this)
+    this.getHermitHole = this.getHermitHole.bind(this)
     this.getGoalAmount = this.getGoalAmount.bind(this)
+    this.getSunshineSessions = this.getSunshineSessions.bind(this)
+    this.updateGoalPercentage = this.updateGoalPercentage.bind(this)
+    this.componentDidMount = this.componentDidMount.bind(this)
   }
-  componentDidMount() {
-    this.getAddress();
-    this.getGoalAmount();
 
-    console.log(this.state.goalAmount);
-
-    // calculate goal percentage
-    if (parseInt(this.state.goalAmount) > 0) {
-      this.setState({goalPercentage: parseInt(1) / parseInt(this.state.goalAmount) })
+  componentWillReceiveProps(NextProps) {
+    if (NextProps.navigation.state.params &&
+        NextProps.navigation.state.params.refresh) {
+        this.getGoalAmount();
+        this.updateGoalPercentage();
     }
+  }
+
+  componentDidMount() {
+    this.getHermitHole();
+    this.getGoalAmount();
+    this.getSunshineSessions();
+    this.updateGoalPercentage();
 
     // Set up location tracking
+    Location.watchPositionAsync({
+        enableHighAccuracy: true,
+        timeInterval: 900000,
+        distanceInterval: 2000
+    }, (coords) => {
+        // Check location doesn't match hermit hole
+        if (coords.latitude == this.state.lat && coords.longitude == this.state.lon) { return; }
+
+        // Update sunshine sessions
+        this.setState({sunshineSessions: parseInt(this.state.sunshineSessions) + 1});
+        AsyncStorage.setItem('@store:sunshineSessions', this.state.sunshineSessions.toString());
+        
+        // Update goal percentage
+        this.updateGoalPercentage();
+    });
   }
-  async getAddress() {
-    let address = await AsyncStorage.getItem('@store:hermitHole');
-    this.setState({hermitHole: address});
+
+  updateGoalPercentage() {
+    let percentage = parseInt((parseInt(this.state.sunshineSessions) * 100) / parseInt(this.state.goalAmount));
+    this.setState({goalPercentage: percentage})
+  }
+
+  async getHermitHole() {
+    let hermitHole = await AsyncStorage.getItem('@store:hermitHole');
+    let lat = AsyncStorage.getItem('@store:hermitHoleLat');
+    let lon = AsyncStorage.getItem('@store:hermitHoleLon');
+    this.setState({hermitHole: hermitHole});
+    this.setState({lat: lat});
+    this.setState({lon: lon});
+  }
+
+  async getSunshineSessions() {
+    let sunshineSessions = await AsyncStorage.getItem('@store:sunshineSessions');
+    this.setState({sunshineSessions: parseInt(sunshineSessions)});
+    console.log(this.state.sunshineSessions);
   }
 
   async getGoalAmount() {
     let goalAmount = await AsyncStorage.getItem('@store:goalAmount');
     this.setState({goalAmount: goalAmount});
   }
+
   render() {
     return (
       <View style={styles.container}>
-        <View style={styles.statContainer}>
         
-          <Text style={styles.heading}>
+        <View style={styles.statContainer}>
+            <Text style={styles.heading}>
             { this.state.sunshineSessions } / { this.state.goalAmount }</Text>
-
-          <Text style={styles.paragraph}>
+            <Text style={styles.paragraph}>
             SUNSHINE SESSIONS THIS WEEK </Text>
-
         </View>
 
         <View style={styles.statContainer}>
-
-          <Text style={styles.heading}>
-          { this.state.goalPercentage } %</Text>
-
-          <Text style={styles.paragraph}>
+            <Text style={styles.heading}>
+            { this.state.goalPercentage } %</Text>
+            <Text style={styles.paragraph}>
             WEEKLY GOAL ACHIEVED </Text>
-
         </View>
 
-        <View style={styles.quoteContainer}>
-          <Image source={hermitLogo} 
-            style={styles.logo}/>
+        { this.state.goalPercentage >= 75 &&
+            <HappyCrab /> }
 
-          <Text style={styles.quote}>
-            "Sun? What dat?" </Text>
-        </View>
+        { (this.state.goalPercentage >= 25 && this.state.goalPercentage < 75) && 
+            <MediocreCrab /> }
 
+        { this.state.goalPercentage < 25 && 
+            <SadCrab /> }
+
+        // NAVBAR
         <View style={styles.nav} >
+            <Icon.Button 
+                name = "home" 
+                size={50}
+                style={styles.navBtn}
+                onPress={() => this.props.navigation.navigate('HermitHoles')} />
 
-          <Text style={styles.navBtnPink} >
-            HH </Text>
+            <Icon.Button 
+                name = "sun" 
+                size={50}
+                style={styles.navBtn}
+                onPress={() => this.props.navigation.navigate('SunshineSessions')} />
 
-            <Text style={styles.navBtnGreen} >
-             SS </Text>
+            <Icon.Button name = "heart" 
+                size={50}
+                style={styles.navBtn} />
 
-            <Text style={styles.navBtnPink} >
-               FB </Text>
-
-            <Text style={styles.navBtnGreen} >
-               ME! </Text>
-
+            <Icon.Button name = "user" 
+                size={50}
+                style={styles.navBtn} />
         </View>
 
       </View>
     );
   }
 }
+
 const styles = StyleSheet.create({
   container: {
     paddingTop:50,
@@ -101,11 +155,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent:'space-between'
   },
-  logo: {
-    height: 100,
-    width: 100,
-    margin: 10
-  },
   logoText: {
     width: 300,
     height: 120
@@ -113,60 +162,28 @@ const styles = StyleSheet.create({
   nav: {
     display: 'flex',
     flexDirection: 'row',
-    height: 60,
-    backgroundColor: '#FFD166',
+    height: 70,
+    backgroundColor: '#333',
     position: 'relative',
     bottom: 0,
-    width:'100%'
+    width:'100%',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
-  navBtnPink: {
+  navBtn: {
     flex: 1,
     width: 80,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    height: 60,
-    backgroundColor: '#333',
-    color:'#FCFCFC',
-    textAlign:'center',
-    lineHeight: 60,
-    fontWeight: '700'
-  },
-  navBtnGreen: {
-    flex: 1,
-    width: 80,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: 60,
-    backgroundColor: '#333',
-    color:'#FCFCFC',
-    textAlign: 'center',
-    lineHeight:60,
-    fontWeight: '700'
+    height: 70,
+    backgroundColor: '#333'
   },
   statContainer: {
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center'
-  },
-  quoteContainer: {
-    display: 'flex',
-    flexDirection: 'row',
-    width: 150,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingBottom: 20
-  },
-  quote: {
-    fontSize: 18,
-    color: '#FCFCFC',
-    lineHeight: 20,
-    marginLeft: 15,
-    marginRight: 15,
-    textAlign: 'center',
-    fontStyle: 'italic'
   },
   paragraph: {
     fontSize: 18,
@@ -198,4 +215,5 @@ const styles = StyleSheet.create({
     borderRadius: 10
   }
 });
+
 AppRegistry.registerComponent('Dashboard');
