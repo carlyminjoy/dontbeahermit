@@ -1,110 +1,109 @@
+// Import modules
 import React from 'react';
 import StackNavigator from 'react-navigation';
 import { AppRegistry, AsyncStorage, StyleSheet, TouchableOpacity, Text, View, Image, Button } from 'react-native';
+import { Constants, Location, Permissions } from 'expo';
+
+// Import custom styles, assets & components 
+import Styles from './../styles.js';
 import hermitImg from './../assets/hermitGreenBgWhite.png';
 import hermitLogo from './../assets/hermitPinkBgBlue.png';
-import WalkthroughButton from './../components/walkthroughbutton';
-import SetupHeading from './../components/setupheading';
-import { Constants, Location, Permissions } from 'expo';
-import HermitHolesSetup from './HermitHolesSetup.js';
-import Dashboard from './Dashboard.js';
+import { WalkthroughButton, SetupHeading, HermitHolesSetup, Dashboard } from './../index.js'
+
 
 export default class HomeScreen extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      hermitHole: null
-    }
+	constructor(props) {
+		super(props);
+		this.state = {
+			newUser: true
+		}
 
-    // Bind functions
-    this.goToNextPage = this.goToNextPage.bind(this);
-    this.checkSetupComplete = this.checkSetupComplete.bind(this);
-  }
+		// Bind functions
+		this.goToNextPage = this.goToNextPage.bind(this);
+		this.checkSetupComplete = this.checkSetupComplete.bind(this);
+		this.checkIfNewWeek = this.checkIfNewWeek.bind(this);
+		this.getHermitHole = this.getHermitHole.bind(this);
+		this.initialiseDefaults = this.initialiseDefaults.bind(this);
+	}
 
-  componentDidMount() {
-    // Testing - delete for prod
-    AsyncStorage.setItem('@store:sunshineSessions', '-1');
-    AsyncStorage.setItem('@store:hermitHole', '');
-    AsyncStorage.setItem('@store:goalAmount', '3');
-    //
-    this.checkSetupComplete();
-  }
+	/*
+	 * On mount, runs functions to initialise state
+	 */
+	componentDidMount() {
+		this.checkSetupComplete()
+			? this.setState({ newUser: false })
+			: this.initialiseDefaults()
 
-  async checkSetupComplete() {
-    // Check if user has already set up
-    let hermitHole = await AsyncStorage.getItem('@store:hermitHole');
-    if (!hermitHole || hermitHole == '') {
-      // Set default stored values
-      AsyncStorage.setItem('@store:sunshineSessions', '-1');
-    } else {
-      this.setState({hermitHole: hermitHole});
-    }
-  }
+		if (!this.state.newUser && this.checkIfNewWeek()) {
+			
+		}
+	}
 
-  goToNextPage() {
-    if (this.state.hermitHole) {
-      this.props.navigation.navigate('Dashboard')
-    } else {
-      this.props.navigation.navigate('HermitHolesSetup')
-    }
-  }
+	/*
+	 * Checks if user has already completed setup
+	 */
+	async checkSetupComplete() {
+		let hermitHole = await this.getHermitHole();
+		return (hermitHole && hermitHole != '');
+	}
 
-  render() {
-    return (
-      <View style={styles.container}>
+	/*
+	 * Checks if it is a new week
+	 */
+	async checkIfNewWeek(currentDate) {
+		// Get last login date and day
+		let lastLogin = new Date(await AsyncStorage.getItem('@store:lastLogin'))
+		let lastLoginDay = lastLogin.getDay()
 
-        <Text style={styles.heading}>
-          Don't Be A Hermit </Text>
+		// Set one week in milliseconds
+		let oneWeek = 604800000;
+		// Get current day
+		let currentDay = currentDate.getDay()
 
-        <Image source={hermitLogo} 
-          style={styles.logo}/>
+		// Return if new week has occurred since last login
+		return (currentDay < lastLoginDay ||
+			currentDate - lastLogin > oneWeek)
+	}
 
-        <WalkthroughButton 
-          text="START"
-          style={styles.startButton}
-          onPress={this.goToNextPage} />
+	async getHermitHole() {
+		let hermitHole = await AsyncStorage.getItem('@store:hermitHole');
+		return hermitHole;
+	}
 
-      </View>
-    );
-  }
+	initialiseDefaults() {
+		AsyncStorage.setItem('@store:sunshineSessions', '0');
+		AsyncStorage.setItem('@store:goalAmount', '7');
+	}
+
+	/*
+	 * Navigates to next setup page or dashboard
+	 */
+	goToNextPage() {
+		let screen = this.state.newUser
+			? 'HermitHolesSetup'
+			: 'Dashboard'
+
+		this.props.navigation.navigate(screen);
+	}
+
+	render() {
+		return (
+			<View style={Styles.homeContainer}>
+
+				<Text style={Styles.heading}>
+					Don't Be A Hermit </Text>
+
+				<Image source={hermitLogo} 
+					style={Styles.logo}/>
+
+				<WalkthroughButton 
+					text="START"
+					style={Styles.startButton}
+					onPress={this.goToNextPage} />
+
+			</View>
+		);
+	}
 }
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#26547C',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 50,
-    paddingBottom: 50,
-    paddingLeft: 20,
-    paddingRight: 20
-  },
-  logo: {
-    height: 200,
-    width: 200,
-    margin: 20
-  },
-  logoText: {
-    width: 300,
-    height: 120
-  },
-  heading: {
-    fontSize: 48,
-    color: '#FCFCFC',
-    fontFamily: 'Avenir',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginLeft: 10,
-    marginRight: 10
-  },
-  startButton: {
-    marginTop: 30,
-    alignItems: 'center',
-    backgroundColor: '#EF476F',
-    paddingTop: 10,
-    paddingBottom: 10,
-    width: 290,
-    borderRadius: 10
-  }
-});
+
 AppRegistry.registerComponent('HomeScreen');

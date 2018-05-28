@@ -1,12 +1,14 @@
+// Import modules
 import React from 'react';
 import StackNavigator from 'react-navigation';
 import Icon from 'react-native-vector-icons/Feather';
 import { AppRegistry, AsyncStorage, StyleSheet, TouchableOpacity, Text, View, Image, Button } from 'react-native';
-import hermitImg from './../assets/hermitGreenBgWhite.png';
-import WalkthroughButton from './../components/walkthroughbutton';
-import SetupHeading from './../components/setupheading';
 import { Constants, Location, Permissions } from 'expo';
-import SunshineSessionsSetup from './SunshineSessionsSetup.js';
+
+// Import custom styles, assets & components 
+import Styles from './../styles.js';
+import hermitImg from './../assets/hermitGreenBgWhite.png';
+import { WalkthroughButton, SetupHeading, SunshineSessionsSetup } from './../index.js'
 
 export default class HermitHolesSetup extends React.Component {
 	constructor(props) {
@@ -17,6 +19,10 @@ export default class HermitHolesSetup extends React.Component {
 		this.setHermitHole = this.setHermitHole.bind(this)
 	}
 
+	/*
+	 * Retrieves and stores user's current location as hermit hole
+	 * and navigates to next setup screen
+	 */
 	async setHermitHole() {
 		// Ask user permissions for location services
 		let { status } = await Permissions.askAsync(Permissions.LOCATION);
@@ -40,27 +46,27 @@ export default class HermitHolesSetup extends React.Component {
 
 	render() {
 		return (
-			<View style={styles.container}>
+			<View style={Styles.setupContainer}>
 
 				<SetupHeading 
-					title="HERMIT HOLES"
-					style={styles.heading} />
+					title="HERMIT HOLE"
+					style={Styles.setupHeading} />
 
 				<Icon 
 					name = "home" 
 					size={150}
-					style={styles.icon} />
+					style={Styles.icon} />
 
-				<Text style={styles.paragraph}>
+				<Text style={Styles.setupParagraph}>
 					Every hermit has a hole or two! </Text>
 
-				<Text style={styles.paragraph}>
+				<Text style={Styles.setupParagraph}>
 					If you're at home right now, click the button below to set this as your hermit hole. </Text>
 
-				<View style={styles.buttonContainer}>
+				<View style={Styles.buttonContainer}>
 					<WalkthroughButton 
 						text="SET HERMIT HOLE"
-						style={styles.startButton}
+						style={Styles.setupButton}
 						onPress={this.setHermitHole} />
 				</View>
 
@@ -68,53 +74,5 @@ export default class HermitHolesSetup extends React.Component {
 		);
 	}
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		justifyContent: 'space-between',
-		backgroundColor: '#FCFCFC',
-		alignItems: 'center',
-		maxHeight: '100%'
-	},
-	icon: {
-		color: "#333",
-		marginTop: 10,
-		marginBottom: 15
-	},
-	heading: {
-		backgroundColor: '#333',
-		alignItems: 'center',
-		justifyContent: 'center',
-		width: '100%',
-		height: 100,
-	},
-	buttonContainer: {
-		height: 100,
-		paddingBottom: 40,
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
-	startButton: {
-		alignItems: 'center',
-		backgroundColor: '#EF476F',
-		paddingTop: 10,
-		paddingBottom: 10,
-		paddingLeft: 5,
-		paddingRight: 5,
-		width: 290,
-		borderRadius: 10
-	},
-	paragraph: {
-		fontSize: 18,
-		lineHeight: 20,
-		marginTop: 5,
-		marginBottom: 5,
-		marginLeft: 15,
-		marginRight: 15,
-		textAlign: 'center'
-	}
-});
 
 AppRegistry.registerComponent('HermitHolesSetup');

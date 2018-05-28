@@ -1,18 +1,20 @@
+// Import modules
 import React from 'react';
 import StackNavigator from 'react-navigation';
 import Icon from 'react-native-vector-icons/Feather';
 import { AppRegistry, AsyncStorage, StyleSheet, TouchableOpacity, Text, TextInput, View, Image, Button } from 'react-native';
-import hermitImg from './../assets/hermitYellowBgWhite.png';
-import WalkthroughButton from './../components/walkthroughbutton';
-import SetupHeading from './../components/setupheading';
 import { Constants, Location, Permissions } from 'expo';
-import Dashboard from './Dashboard.js';
+
+// Import custom styles, assets & components 
+import Styles from './../styles.js';
+import hermitImg from './../assets/hermitYellowBgWhite.png';
+import { WalkthroughButton, SetupHeading, Dashboard } from './../index.js'
 
 export default class SunshineSessions extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			address: '',
+			hermitHole: '',
 			goalAmount: 0
 		}
 
@@ -21,77 +23,95 @@ export default class SunshineSessions extends React.Component {
 		this.increment = this.increment.bind(this);
 		this.goToDashboard = this.goToDashboard.bind(this);
 	}
+
+	/*
+	 * On mount, runs functions to initialise state
+	 */
 	componentDidMount() {
-		this.getAddress();
+		this.getHermitHole();
 		this.getGoalAmount();
 	}
 
-	async getAddress() {
-		let address = await AsyncStorage.getItem('@store:hermitHole');
-		this.setState({address: address});
+	/*
+	 * Retrieves & sets stored hermit hole string to current state
+	 */
+	async getHermitHole() {
+		let hermitHole = await AsyncStorage.getItem('@store:hermitHole');
+		this.setState({hermitHole: hermitHole});
 	}
 
+	/*
+	 * Retrieves & sets stored goal amount string to current state
+	 */
 	async getGoalAmount() {
 		let goalAmount = await AsyncStorage.getItem('@store:goalAmount');
 		this.setState({goalAmount: goalAmount});
 	}
 
+	/*
+	 * Decrements sunshine sessions goal by 1
+	 */
 	decrement() {
 		this.setState({goalAmount: this.state.goalAmount - 1});
 	}
 
+	/*
+	 * Increments sunshine sessions goal by 1
+	 */
 	increment() {
 		this.setState({goalAmount: parseInt(this.state.goalAmount) + 1});
 	}
 
+	/*
+	 * Stores goal amount and navigates to dashboard
+	 */
 	async goToDashboard() {
-		// Navigate to next screen
 		await AsyncStorage.setItem('@store:goalAmount', this.state.goalAmount.toString());
 		this.props.navigation.navigate('Dashboard', {refresh: true});
 	}
 
 	render() {
 		return (
-			<View style={styles.container}>
+			<View style={Styles.setupContainer}>
 				<SetupHeading 
 					title="SUNSHINE SESSIONS"
-					style={styles.heading} />
+					style={Styles.screenHeading} />
 				
 				<Icon 
 					name = "sun" 
-					size={150}
-					style={styles.icon} />
+					size={120}
+					style={Styles.icon} />
 
-				<Text style={styles.paragraph}>
+				<Text style={Styles.goalText}>
 					Weekly Goal:</Text>
 
-				<View style={styles.counterContainer}>
+				<View style={Styles.counterContainer}>
 
 					<WalkthroughButton 
 						text=" - "
 						onPress={this.decrement}
-						style={styles.decrement} />
+						style={Styles.decrement} />
 
-					<Text style={styles.counter}>
+					<Text style={Styles.counter}>
 							{this.state.goalAmount}
 						</Text>
 
 					<WalkthroughButton 
 						text=" + "
 						onPress={this.increment}
-						style={styles.increment} />
+						style={Styles.increment} />
 
 				</View>
 
-				<View style={styles.buttonContainer}>
+				<View style={Styles.buttonsContainer}>
 					<WalkthroughButton 
 						text="SET GOAL"
-						style={styles.startButton}
+						style={Styles.startButton}
 						onPress={this.goToDashboard} />
 
 					<WalkthroughButton 
 						text="CANCEL"
-						style={styles.cancelButton}
+						style={Styles.cancelButton}
 						onPress={() => this.props.navigation.navigate('Dashboard')} />
 				</View>
 
@@ -99,115 +119,5 @@ export default class SunshineSessions extends React.Component {
 		);
 	}
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		justifyContent: 'space-between',
-		backgroundColor: '#FCFCFC',
-		alignItems: 'center',
-		maxHeight: '100%'
-	},
-	icon: {
-		color: "#333",
-		paddingTop: 15,
-		paddingBottom: 15
-	},
-	counterContainer: {
-		display: 'flex',
-		flexDirection: 'row',
-		justifyContent: 'center',
-		alignItems: 'center',
-		padding: 10
-	},
-	counter: {
-		paddingTop: 10,
-		paddingBottom: 10,
-		paddingLeft: 20,
-		paddingRight: 20,
-		fontSize: 36,
-		color: '#000',
-		fontWeight: '700',
-		textAlign: 'center'
-	},
-	decrement: {
-		backgroundColor: '#333',
-		height: 60,
-		width: 60,
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center',
-		marginLeft: 10,
-		marginRight: 10,
-		borderRadius: 5
-	},
-	increment: {
-		backgroundColor: '#333',
-		height: 60,
-		width: 60,
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center',
-		marginLeft: 10,
-		marginRight: 10,
-		borderRadius: 5
-	},
-	img: {
-		height: 50,
-		width: 50,
-		margin: 10
-	},
-	heading: {
-		backgroundColor: '#333',
-		alignItems: 'center',
-		justifyContent: 'center',
-		width: '100%',
-		height: 100,
-	},
-	buttonContainer: {
-		height: 'auto',
-		paddingBottom: 30,
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
-	startButton: {
-		alignItems: 'center',
-		backgroundColor: '#EF476F',
-		paddingTop: 10,
-		paddingBottom: 10,
-		paddingLeft: 5,
-		paddingRight: 5,
-		width: 290,
-		borderRadius: 10
-	},
-	cancelButton: {
-		marginTop: 10,
-		alignItems: 'center',
-		backgroundColor: '#333',
-		paddingTop: 10,
-		paddingBottom: 10,
-		paddingLeft: 5,
-		paddingRight: 5,
-		width: 290,
-		borderRadius: 10
-	},
-	paragraph: {
-		fontSize: 24,
-		lineHeight: 26,
-		fontWeight: '700',
-		textAlign: 'center'
-	},
-	bold: {
-		fontSize: 18,
-		lineHeight: 20,
-		marginTop: 5,
-		marginBottom: 5,
-		marginLeft: 15,
-		marginRight: 15,
-		textAlign: 'center',
-		fontWeight: '700'
-	}
-});
 
 AppRegistry.registerComponent('SunshineSessionsSetup');
