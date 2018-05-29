@@ -30,6 +30,7 @@ export default class HomeScreen extends React.Component {
 		this.getSunshineSessions = this.getSunshineSessions.bind(this)
 		this.updateGoalPercentage = this.updateGoalPercentage.bind(this)
 		this.componentDidMount = this.componentDidMount.bind(this)
+		this.initLocationTracking = this.initLocationTracking.bind(this)
 	}
 
 	/*
@@ -75,8 +76,8 @@ export default class HomeScreen extends React.Component {
 		this.setState({hermitHole: hermitHole});
 
 		// Set latitude & longitude to 3 decimals (covers 110 metres)
-		this.setState({lat: parseFloat(this.state.lat).toFixed(3)});
-		this.setState({lon: parseFloat(this.state.lon).toFixed(3)});
+		this.setState({lat: parseFloat(lat).toFixed(3)});
+		this.setState({lon: parseFloat(lon).toFixed(3)});
 	}
 
 	/*

@@ -35,7 +35,8 @@ export default class HomeScreen extends React.Component {
 			: this.initialiseDefaults()
 
 		if (!this.state.newUser && this.checkIfNewWeek()) {
-			
+			// Reset sunshine sessions
+			AsyncStorage.setItem('@store:sunshineSessions', '0');
 		}
 	}
 
